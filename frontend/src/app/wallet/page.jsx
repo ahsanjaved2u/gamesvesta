@@ -6,6 +6,8 @@ import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import TopUpModal from '@/components/TopUpModal';
 
+const API = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000/api';
+
 export default function WalletPage() {
   const { authFetch, isLoggedIn, walletBalance, lockedBalance, availableBalance, fetchBalance, user } = useAuth();
   const router = useRouter();
@@ -21,6 +23,7 @@ export default function WalletPage() {
   const [submitting, setSubmitting] = useState(false);
   const [msg, setMsg] = useState(null);
   const [lockedRewards, setLockedRewards] = useState([]);
+  const [minWithdraw, setMinWithdraw] = useState(0);
 
   const flash = (text, type = 'success') => {
     setMsg({ text, type });
@@ -42,6 +45,17 @@ export default function WalletPage() {
       setLoading(false);
     })();
   }, [isLoggedIn]);
+
+  // Load admin-configured minimum withdrawal amount
+  useEffect(() => {
+    (async () => {
+      try {
+        const res = await fetch(`${API}/settings/public`);
+        const data = await res.json();
+        setMinWithdraw(Number(data.minWithdrawalAmount) || 0);
+      } catch { /* ignore — backend still enforces the minimum */ }
+    })();
+  }, []);
 
   // Auto-refresh when the earliest lock expires
   useEffect(() => {
@@ -114,6 +128,10 @@ export default function WalletPage() {
   // Hide locked rewards from main transaction list while they're locked
   const lockedIds = new Set(lockedRewards.map(lr => lr._id));
   const visibleTransactions = transactions.filter(t => !lockedIds.has(t._id));
+
+  // Below admin-set minimum withdrawal balance?
+  const belowMin = minWithdraw > 0 && availableBalance < minWithdraw;
+  const minProgress = belowMin ? Math.min(100, Math.round((Math.max(0, availableBalance) / minWithdraw) * 100)) : 100;
 
   const typeConfig = {
     credit: { icon: '💰', color: '#00ff88', label: 'Credit', sign: '+' },
@@ -231,8 +249,48 @@ export default function WalletPage() {
           </div>
         )}
 
+        {/* ── Minimum Balance Notice ── */}
+        {showWithdraw && belowMin && (
+          <div className="glass-card p-6 mb-5 animate-fade-in-up text-center relative" style={{
+            border: '1px solid rgba(255,217,61,0.25)',
+            overflow: 'hidden',
+          }}>
+            <div style={{ position: 'absolute', top: -50, left: '50%', transform: 'translateX(-50%)', width: 200, height: 200, borderRadius: '50%', background: 'radial-gradient(circle, rgba(255,217,61,0.12), transparent 70%)', pointerEvents: 'none' }} />
+            <span style={{ fontSize: 44, display: 'block', marginBottom: 8 }}>💸</span>
+            <p className="text-lg font-black mb-1" style={{
+              background: 'linear-gradient(135deg, #ffd93d, #00ff88)',
+              WebkitBackgroundClip: 'text',
+              WebkitTextFillColor: 'transparent',
+            }}>
+              Almost there!
+            </p>
+            <p className="text-sm mb-4" style={{ color: 'var(--text-muted)' }}>
+              You can withdraw once you have <span style={{ color: '#00ff88', fontWeight: 800 }}>PKR {minWithdraw.toLocaleString()}</span> in your wallet.
+            </p>
+            <div style={{ maxWidth: 320, margin: '0 auto' }}>
+              <div className="flex items-center justify-between mb-1.5">
+                <span className="text-[11px] font-bold" style={{ color: '#00ff88' }}>PKR {availableBalance.toLocaleString()}</span>
+                <span className="text-[11px] font-bold" style={{ color: 'var(--text-muted)' }}>PKR {minWithdraw.toLocaleString()}</span>
+              </div>
+              <div style={{ height: 10, borderRadius: 999, background: 'var(--subtle-overlay)', border: '1px solid var(--subtle-border)', overflow: 'hidden' }}>
+                <div style={{
+                  height: '100%',
+                  width: `${minProgress}%`,
+                  borderRadius: 999,
+                  background: 'linear-gradient(90deg, #00ff88, var(--neon-cyan))',
+                  boxShadow: '0 0 12px rgba(0,255,136,0.5)',
+                  transition: 'width 0.6s ease',
+                }} />
+              </div>
+              <p className="text-[11px] mt-2" style={{ color: 'var(--text-muted)' }}>
+                Just <span style={{ color: '#ffd93d', fontWeight: 700 }}>PKR {(minWithdraw - availableBalance).toLocaleString()}</span> more to go — keep playing to earn! 🎮
+              </p>
+            </div>
+          </div>
+        )}
+
         {/* ── Withdraw Form ── */}
-        {showWithdraw && (
+        {showWithdraw && !belowMin && (
           <div className="glass-card p-5 mb-5 animate-fade-in-up">
             <form onSubmit={handleWithdraw}>
               <div className="flex flex-col gap-3">

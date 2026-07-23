@@ -14,6 +14,7 @@ function SettingsContent() {
   const [referralDurationDays, setReferralDurationDays] = useState('');
   const [maxReferralsPerUser, setMaxReferralsPerUser] = useState('');
   const [referralIPRestriction, setReferralIPRestriction] = useState(true);
+  const [minWithdrawalAmount, setMinWithdrawalAmount] = useState('');
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [msg, setMsg] = useState(null);
@@ -28,6 +29,7 @@ function SettingsContent() {
           setReferralDurationDays(data.settings.referralDurationDays ?? 30);
           setMaxReferralsPerUser(data.settings.maxReferralsPerUser ?? 50);
           setReferralIPRestriction(data.settings.referralIPRestriction === true || data.settings.referralIPRestriction === 'true');
+          setMinWithdrawalAmount(data.settings.minWithdrawalAmount ?? 200);
         }
       } catch { /* ignore */ }
       setLoading(false);
@@ -46,6 +48,7 @@ function SettingsContent() {
           referralDurationDays: Number(referralDurationDays) || 30,
           maxReferralsPerUser: Number(maxReferralsPerUser) || 50,
           referralIPRestriction,
+          minWithdrawalAmount: Number(minWithdrawalAmount) || 0,
         }),
       });
       if (data.success) {
@@ -55,6 +58,7 @@ function SettingsContent() {
         setReferralDurationDays(data.settings.referralDurationDays ?? 30);
         setMaxReferralsPerUser(data.settings.maxReferralsPerUser ?? 50);
         setReferralIPRestriction(data.settings.referralIPRestriction === true || data.settings.referralIPRestriction === 'true');
+        setMinWithdrawalAmount(data.settings.minWithdrawalAmount ?? 200);
       }
     } catch (err) {
       setMsg({ type: 'error', text: err.message || 'Failed to save' });
@@ -147,6 +151,66 @@ function SettingsContent() {
                 {Number(signupReward) > 0
                   ? `New users will receive PKR ${signupReward} in their wallet on signup. A modal will prompt guests to sign up.`
                   : 'Signup reward is disabled. No reward modal will be shown to guests.'}
+              </p>
+            </div>
+
+            {/* ── Minimum Withdrawal Card ── */}
+            <div className="glass-card p-5 sm:p-6" style={{ border: '1px solid var(--glass-border)' }}>
+              <div className="flex items-center gap-3 mb-4">
+                <div className="w-10 h-10 rounded-xl flex items-center justify-center text-lg shrink-0" style={{
+                  background: 'linear-gradient(135deg, #ffd93d, var(--neon-cyan))',
+                }}>💸</div>
+                <div>
+                  <h2 className="text-base font-bold" style={{ color: 'var(--text-primary)' }}>Minimum Withdrawal</h2>
+                  <p className="text-xs" style={{ color: 'var(--text-muted)' }}>
+                    Users can send a withdrawal request only once their available balance reaches this amount. Set to 0 to disable.
+                  </p>
+                </div>
+              </div>
+
+              <div className="flex items-center gap-3">
+                <div className="relative flex-1 max-w-xs">
+                  <span className="absolute left-3 top-1/2 -translate-y-1/2 text-sm font-bold" style={{ color: 'var(--text-muted)' }}>PKR</span>
+                  <input
+                    type="number"
+                    min="0"
+                    step="1"
+                    value={minWithdrawalAmount}
+                    onChange={e => setMinWithdrawalAmount(e.target.value)}
+                    className="w-full rounded-xl py-2.5 pl-12 pr-4 text-sm font-semibold outline-none transition-all"
+                    style={{
+                      background: 'var(--input-bg)',
+                      border: '1px solid var(--input-border)',
+                      color: 'var(--text-primary)',
+                    }}
+                    onFocus={e => e.target.style.borderColor = 'var(--neon-cyan)'}
+                    onBlur={e => e.target.style.borderColor = 'var(--input-border)'}
+                  />
+                </div>
+                <button
+                  onClick={handleSave}
+                  disabled={saving}
+                  className="btn-neon btn-neon-primary text-sm px-5 py-2.5"
+                  style={{ opacity: saving ? 0.6 : 1 }}
+                >
+                  {saving ? 'Saving...' : 'Save'}
+                </button>
+              </div>
+
+              {msg && (
+                <div className="mt-3 px-4 py-2.5 rounded-xl text-sm font-medium animate-fade-in-up" style={{
+                  background: msg.type === 'success' ? 'rgba(0,255,136,0.1)' : 'rgba(255,45,120,0.1)',
+                  border: `1px solid ${msg.type === 'success' ? 'rgba(0,255,136,0.3)' : 'rgba(255,45,120,0.3)'}`,
+                  color: msg.type === 'success' ? '#00ff88' : '#ff2d78',
+                }}>
+                  {msg.text}
+                </div>
+              )}
+
+              <p className="mt-3 text-[11px]" style={{ color: 'var(--text-muted)' }}>
+                {Number(minWithdrawalAmount) > 0
+                  ? `Users need at least PKR ${minWithdrawalAmount} in available balance before they can send a withdrawal request.`
+                  : 'No minimum — users can request a withdrawal with any balance.'}
               </p>
             </div>
 

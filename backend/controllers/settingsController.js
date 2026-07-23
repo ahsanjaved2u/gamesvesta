@@ -3,12 +3,13 @@ const AppSettings = require('../models/AppSettings');
 // GET /api/settings/public — anyone can read public settings (signup reward, etc.)
 exports.getPublicSettings = async (req, res, next) => {
   try {
-    const [signupReward, referralBonusPercent, referralDurationDays, maxReferralsPerUser, referralIPRestriction] = await Promise.all([
+    const [signupReward, referralBonusPercent, referralDurationDays, maxReferralsPerUser, referralIPRestriction, minWithdrawalAmount] = await Promise.all([
       AppSettings.getSetting('signupReward', 0),
       AppSettings.getSetting('referralBonusPercent', 10),
       AppSettings.getSetting('referralDurationDays', 30),
       AppSettings.getSetting('maxReferralsPerUser', 50),
       AppSettings.getSetting('referralIPRestriction', true),
+      AppSettings.getSetting('minWithdrawalAmount', 200),
     ]);
     res.json({
       success: true,
@@ -17,6 +18,7 @@ exports.getPublicSettings = async (req, res, next) => {
       referralDurationDays: Number(referralDurationDays),
       maxReferralsPerUser: Number(maxReferralsPerUser),
       referralIPRestriction: String(referralIPRestriction) === 'true',
+      minWithdrawalAmount: Number(minWithdrawalAmount),
     });
   } catch (error) {
     next(error);
@@ -38,7 +40,7 @@ exports.getAllSettings = async (req, res, next) => {
 // PUT /api/settings — admin updates settings
 exports.updateSettings = async (req, res, next) => {
   try {
-    const { signupReward, referralBonusPercent, referralDurationDays, maxReferralsPerUser, referralIPRestriction } = req.body;
+    const { signupReward, referralBonusPercent, referralDurationDays, maxReferralsPerUser, referralIPRestriction, minWithdrawalAmount } = req.body;
 
     if (signupReward !== undefined) {
       const val = Number(signupReward);
@@ -74,6 +76,14 @@ exports.updateSettings = async (req, res, next) => {
 
     if (referralIPRestriction !== undefined) {
       await AppSettings.setSetting('referralIPRestriction', !!referralIPRestriction);
+    }
+
+    if (minWithdrawalAmount !== undefined) {
+      const val = Number(minWithdrawalAmount);
+      if (isNaN(val) || val < 0) {
+        return res.status(400).json({ success: false, message: 'minWithdrawalAmount must be a non-negative number' });
+      }
+      await AppSettings.setSetting('minWithdrawalAmount', val);
     }
 
     // Return updated settings

@@ -1,6 +1,7 @@
 const Wallet = require('../models/Wallet');
 const Transaction = require('../models/Transaction');
 const User = require('../models/User');
+const AppSettings = require('../models/AppSettings');
 const Game = require('../models/Game');
 const Contest = require('../models/Contest');
 const GameScore = require('../models/GameScore');
@@ -178,6 +179,17 @@ const requestWithdrawal = async (req, res) => {
     const wallet = await getOrCreateWallet(req.user._id);
     const lockedBalance = await getLockedBalance(req.user._id);
     const availableBalance = parseFloat(Math.max(0, wallet.balance - lockedBalance).toFixed(2));
+
+    // Admin-configured minimum balance required to request a withdrawal
+    const minWithdrawal = Number(await AppSettings.getSetting('minWithdrawalAmount', 200));
+    if (!isNaN(minWithdrawal) && minWithdrawal > 0 && availableBalance < minWithdrawal) {
+      return res.status(400).json({
+        message: `You can withdraw once you have PKR ${minWithdrawal} in your wallet.`,
+        minWithdrawal,
+        minWithdrawalNotMet: true,
+      });
+    }
+
     if (availableBalance < amount) return res.status(400).json({ message: 'Insufficient available balance. Some funds are locked in active game sessions.' });
 
     // Deduct immediately, mark as pending
