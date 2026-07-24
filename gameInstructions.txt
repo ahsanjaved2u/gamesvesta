@@ -45,3 +45,18 @@ Survive enemy waves, upgrade your ship, and rack up the highest score.
 🚀 Ship   Every 5 pts = next tier (5 tiers)
 ⏱️ Speed  Less time = more score
 🏆 Rewards  Best daily score • Score → PKR
+
+///////////////////////////////////sword runner////////////////////////////////////////
+⚔️ Sword Runner
+Run the 3-lane valley — slash coins, dodge foes and barriers at ever-rising speed.
+
+🎮 Controls  Swipe or A / D = change lane • Swipe up / tap = jump • Swipe down = roll
+🪙 Coins  Bronze +1 • Silver +2 • Gold +3
+🚧 Obstacles  Jump red barriers • Roll under bars • Dodge purple crystals
+👾 Foes  Orange imp -1 ⚡ • Purple brute -2 ⚡ (jump imps, dodge brutes)
+✖️ Multiplier  Overtake foes = score multiplier up
+🛡️ Shield  Rare — appears only when hurt, refills strength
+⚡ Strength  Every hit drains it — game over at 0
+🌗 Theme  Day / Night toggle on the start card (T)
+⏱️ Speed  Less time = more score
+🏆 Rewards  Best daily score • Score → PKR
