@@ -387,8 +387,16 @@ const GameZone = (() => {
 
             ctx.fillStyle = '#555';
             ctx.font = `bold ${V(9)}px Arial`;
-            ['#', 'NAME', 'PTS', 'TIME', 'SCORE'].forEach((lbl, i) => {
-                ctx.fillText(lbl, [cols.rank, cols.name, cols.pts, cols.time, cols.score][i], y);
+            // Last column is right-aligned so "BEST SCORE" stays on one
+            // line without overflowing the card
+            ['#', 'NAME', 'PTS', 'TIME', 'BEST SCORE'].forEach((lbl, i) => {
+                if (i === 4) {
+                    ctx.textAlign = 'right';
+                    ctx.fillText(lbl, cardL + pad + innerW, y);
+                    ctx.textAlign = 'center';
+                } else {
+                    ctx.fillText(lbl, [cols.rank, cols.name, cols.pts, cols.time][i], y);
+                }
             });
             y += V(12);
 
@@ -622,6 +630,7 @@ const GameZone = (() => {
     color: #6c7a89;
     padding: 7px 5px;
     text-align: left;
+    white-space: nowrap;   /* "Best Score" must never wrap to two lines */
     border-bottom: 1px solid rgba(255,255,255,0.06);
 }
 #gz-lb-table thead th:first-child { text-align: center; width: 24px; }
@@ -711,7 +720,7 @@ const GameZone = (() => {
                             <th>Name</th>
                             <th>Pts</th>
                             <th>Time</th>
-                            <th>Score</th>
+                            <th>Best Score</th>
                         </tr>
                     </thead>
                     <tbody id="gz-lb-body"></tbody>
