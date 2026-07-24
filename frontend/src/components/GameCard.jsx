@@ -440,7 +440,7 @@ export default function GameCard({ game, contest, session, i, isLoggedIn, review
         {session && (
           <div className="flex-1 flex flex-col items-center justify-center rounded-xl mb-3 px-2 py-3 sm:px-4 sm:py-5 text-center" style={{ background: 'linear-gradient(135deg, rgba(0,255,136,0.08), rgba(255,217,61,0.06))', border: '1px solid rgba(0,255,136,0.15)' }}>
             <span className="text-[24px] sm:text-[34px]" style={{ lineHeight: 1, marginBottom: 8 }}>💰</span>
-            <span className="font-bold text-[13px] sm:text-[17px]" style={{ color: '#00ff88' }}>Skill-Based Cash Prizes</span>
+            <span className="font-bold text-[13px] sm:text-[17px]" style={{ color: '#00ff88' }}>{game.name}</span>
             <p className="text-[11px] sm:text-[13.5px]" style={{ color: 'var(--text-secondary)', margin: '6px 0 0' }}>Top scores win real cash prizes!</p>
             <SessionCountdown session={session} slug={game.slug} onSessionEnd={onSessionEnd} />
           </div>
