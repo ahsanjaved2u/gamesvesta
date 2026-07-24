@@ -157,14 +157,19 @@ const GameZone = (() => {
     }
 
     // ── Add entry locally ──
+    // The leaderboard table always shows the player's BEST run (matching
+    // the backend's best-score-only logic) — never a worse current run.
+    // The current run's score is still returned for the big header number.
     function addEntry(name, points, timeSec) {
         const sc = calcScore(points, timeSec);
         const newEntry = { name, points, time: Math.round(timeSec), score: sc, isPlayer: true };
-        const merged = [...entries.filter(e => !e.isPlayer), newEntry];
+        const existing = entries.find(e => e.isPlayer);
+        const playerEntry = (existing && existing.score > sc) ? existing : newEntry;
+        const merged = [...entries.filter(e => !e.isPlayer), playerEntry];
         merged.sort((a, b) => b.score - a.score);
         const top = merged.slice(0, MAX_ENTRIES);
         entries = top;
-        const rank = top.findIndex(e => e.isPlayer && e.score === sc) + 1;
+        const rank = top.findIndex(e => e.isPlayer) + 1;
         return { entries: top, score: sc, rank: rank || top.length + 1 };
     }
 
